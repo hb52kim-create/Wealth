@@ -799,7 +799,8 @@ function startSync() {
     if(pct >= 100) {
       clearInterval(iv);
       setTimeout(()=>{
-        document.getElementById('screen-mydata').classList.remove('active');
+        document.getElementById('screen-mydata').style.display = 'none';
+        document.getElementById('screen-main').style.display = 'block';
         document.getElementById('screen-main').classList.add('active');
         render();
         fetchPrices();
@@ -809,7 +810,8 @@ function startSync() {
 }
 
 function skipToMain() {
-  document.getElementById('screen-mydata').classList.remove('active');
+  document.getElementById('screen-mydata').style.display = 'none';
+  document.getElementById('screen-main').style.display = 'block';
   document.getElementById('screen-main').classList.add('active');
   render();
   fetchPrices();
