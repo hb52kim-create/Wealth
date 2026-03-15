@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>WEALTH — 내 자산 포트폴리오</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#080b10">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WEALTH">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<!-- Safe area for iPhone notch -->
+<style>
+  body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#080b10;
+  --bg1:#0d1219;
+  --bg2:#111720;
+  --bg3:#161e2a;
+  --bg4:#1c2736;
+  --line:#1e2d3f;
+  --line2:#253547;
+  --text:#dce8f5;
+  --text2:#7a9ab8;
+  --text3:#3d5570;
+  --accent:#00d4ff;
+  --accent2:#00aaff;
+  --green:#00e5a0;
+  --red:#ff4d6a;
+  --gold:#ffcc44;
+  --purple:#a855f7;
+  --orange:#ff7c40;
+  --teal:#14b8a6;
+  --blue:#3b82f6;
+  --font-display:'Syne',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --font-body:'Noto Sans KR',sans-serif;
+}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* BG grain + glow */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 80% 60% at -10% 0%,rgba(0,212,255,0.07) 0%,transparent 55%),
+    radial-gradient(ellipse 60% 50% at 110% 100%,rgba(168,85,247,0.06) 0%,transparent 55%),
+    radial-gradient(ellipse 40% 40% at 50% 50%,rgba(0,170,255,0.03) 0%,transparent 70%);
+  pointer-events:none;
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity:0.4;pointer-events:none;
+}
+
+.app{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:0 24px 80px;}
+
+/* =========== SCREENS =========== */
+.screen{display:none;animation:fadeIn 0.4s ease;}
+.screen.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* =========== MYDATA ONBOARDING =========== */
+#screen-mydata{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:40px 24px;
+}
+.onboard-wrap{max-width:480px;width:100%;}
+.brand{
+  font-family:var(--font-display);font-size:36px;font-weight:800;
+  letter-spacing:-1px;color:var(--text);margin-bottom:8px;
+}
+.brand span{color:var(--accent);}
+.brand-sub{font-size:13px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:48px;}
+
+.mydata-card{
+  background:var(--bg2);border:1px solid var(--line2);border-radius:20px;
+  padding:32px;position:relative;overflow:hidden;
+}
+.mydata-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+}
+.mydata-step{display:none;}
+.mydata-step.active{display:block;}
+
+.step-header{margin-bottom:28px;}
+.step-num{
+  font-family:var(--font-mono);font-size:11px;color:var(--accent);
+  letter-spacing:2px;margin-bottom:8px;
+}
+.step-title{font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text);}
+.step-desc{font-size:13px;color:var(--text2);margin-top:6px;line-height:1.6;}
+
+.bank-list{display:flex;flex-direction:column;gap:10px;margin-bottom:24px;}
+.bank-item{
+  display:flex;align-items:center;gap:14px;
+  background:var(--bg3);border:1px solid var(--line);border-radius:12px;
+  padding:14px 16px;cursor:pointer;transition:all 0.2s;
+}
+.bank-item:hover,.bank-item.selected{border-color:var(--accent);background:rgba(0,212,255,0.05);}
+.bank-item.selected .bank-check{opacity:1;}
+.bank-icon{
+  width:38px;height:38px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:20px;flex-shrink:0;
+}
+.bank-name{font-size:14px;font-weight:600;color:var(--text);}
+.bank-type{font-size:11px;color:var(--text3);margin-top:2px;}
+.bank-check{margin-left:auto;color:var(--accent);opacity:0;transition:opacity 0.2s;font-size:18px;}
+
+.auth-form{display:flex;flex-direction:column;gap:14px;margin-bottom:24px;}
+.form-field{}
+.form-label{font-size:11px;color:var(--text3);letter-spacing:1px;margin-bottom:6px;text-transform:uppercase;}
+.form-input{
+  width:100%;background:var(--bg3);border:1px solid var(--line2);
+  border-radius:10px;padding:12px 16px;color:var(--text);
+  font-size:14px;font-family:var(--font-body);outline:none;
+  transition:border-color 0.2s;
+}
+.form-input:focus{border-color:rgba(0,212,255,0.5);}
+.form-input::placeholder{color:var(--text3);}
+
+.pin-grid{display:flex;gap:10px;justify-content:center;}
+.pin-box{
+  width:52px;height:60px;background:var(--bg3);border:1px solid var(--line2);
+  border-radius:10px;font-size:24px;text-align:center;color:var(--text);
+  font-family:var(--font-mono);outline:none;transition:border-color 0.2s;
+}
+.pin-box:focus{border-color:var(--accent);}
+
+.progress-dots{display:flex;gap:8px;margin-bottom:24px;}
+.progress-dot{
+  width:28px;height:3px;border-radius:2px;background:var(--line2);transition:background 0.3s;
+}
+.progress-dot.done{background:var(--accent);}
+
+.btn-full{
+  width:100%;padding:14px;border:none;border-radius:12px;cursor:pointer;
+  font-size:15px;font-weight:700;font-family:var(--font-display);
+  letter-spacing:0.3px;transition:all 0.2s;
+}
+.btn-accent{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#080b10;
+}
+.btn-accent:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,212,255,0.2);}
+.btn-ghost{
+  background:transparent;color:var(--text2);border:1px solid var(--line2);
+  margin-top:10px;
+}
+.btn-ghost:hover{border-color:var(--line2);color:var(--text);}
+
+.loading-bar{
+  height:3px;background:var(--line);border-radius:2px;overflow:hidden;margin-bottom:24px;
+}
+.loading-fill{
+  height:100%;width:0%;background:linear-gradient(90deg,var(--accent2),var(--accent));
+  border-radius:2px;transition:width 0.1s linear;
+}
+.loading-msg{font-size:13px;color:var(--text2);text-align:center;font-family:var(--font-mono);}
+
+/* =========== MAIN DASHBOARD =========== */
+#screen-main{padding-top:0;}
+
+/* Topbar */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 0 0;border-bottom:1px solid var(--line);
+  margin-bottom:32px;flex-wrap:wrap;gap:12px;
+}
+.topbar-brand{
+  font-family:var(--font-display);font-size:22px;font-weight:800;
+  letter-spacing:-0.5px;
+}
+.topbar-brand span{color:var(--accent);}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.sync-info{
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--font-mono);font-size:11px;color:var(--text3);
+}
+.live-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.2);
+  border-radius:20px;padding:4px 10px;
+  font-size:11px;font-family:var(--font-mono);color:var(--green);
+}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.4)}}
+
+.topbar-nav{display:flex;gap:0;background:var(--bg2);border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+.nav-tab{
+  padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;
+  color:var(--text3);transition:all 0.15s;border:none;background:none;
+  font-family:var(--font-display);letter-spacing:0.3px;
+}
+.nav-tab.active{background:var(--accent);color:#080b10;}
+.nav-tab:hover:not(.active){color:var(--text);}
+
+/* =========== TICKER STRIP =========== */
+.ticker-strip{
+  background:var(--bg1);border:1px solid var(--line);border-radius:12px;
+  padding:14px 20px;display:flex;gap:0;flex-wrap:wrap;
+  margin-bottom:28px;overflow:hidden;position:relative;
+}
+.ticker-strip::before{
+  content:'LIVE';position:absolute;left:16px;top:50%;transform:translateY(-50%);
+  font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--text3);
+}
+.ticker-inner{display:flex;gap:0;flex-wrap:wrap;margin-left:40px;width:calc(100% - 40px);}
+.ticker-item{
+  display:flex;align-items:center;gap:8px;
+  padding:0 18px;border-right:1px solid var(--line);
+}
+.ticker-item:last-child{border-right:none;}
+.t-icon{font-size:14px;}
+.t-name{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:0.5px;}
+.t-price{font-family:var(--font-mono);font-size:13px;font-weight:500;color:var(--text);}
+.t-chg{font-family:var(--font-mono);font-size:10px;}
+.t-chg.up{color:var(--green);}
+.t-chg.dn{color:var(--red);}
+.t-chg.flat{color:var(--text3);}
+.t-time{margin-left:auto;font-family:var(--font-mono);font-size:10px;color:var(--text3);}
+
+/* =========== HERO ROW =========== */
+.hero-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;}
+@media(max-width:900px){.hero-row{grid-template-columns:1fr 1fr;}}
+@media(max-width:580px){.hero-row{grid-template-columns:1fr;}}
+
+.hero-card{
+  background:var(--bg2);border:1px solid var(--line);border-radius:16px;
+  padding:22px;position:relative;overflow:hidden;
+}
+.hero-main{
+  background:var(--bg2);border:1px solid var(--line2);border-radius:16px;
+  padding:26px;position:relative;overflow:hidden;grid-column:span 1;
+}
+.hero-main::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+}
+.hero-label{font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-family:var(--font-mono);}
+.hero-val{
+  font-family:var(--font-display);font-size:30px;font-weight:800;
+  letter-spacing:-1px;color:var(--text);line-height:1;
+}
+.hero-val.accent{color:var(--accent);}
+.hero-sub{font-size:12px;color:var(--text3);margin-top:6px;font-family:var(--font-mono);}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:4px;margin-top:8px;
+  background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.15);
+  border-radius:6px;padding:3px 8px;font-size:11px;font-family:var(--font-mono);color:var(--green);
+}
+.hero-badge.red{background:rgba(255,77,106,0.08);border-color:rgba(255,77,106,0.15);color:var(--red);}
+
+/* =========== MAIN GRID =========== */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;}
+@media(max-width:800px){.dash-grid{grid-template-columns:1fr;}}
+.span2{grid-column:span 2;}
+@media(max-width:800px){.span2{grid-column:span 1;}}
+
+/* Card base */
+.card{
+  background:var(--bg2);border:1px solid var(--line);border-radius:16px;
+  padding:22px;position:relative;overflow:hidden;
+  transition:border-color 0.2s;
+}
+.card:hover{border-color:var(--line2);}
+.card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.card-title{
+  font-family:var(--font-display);font-size:14px;font-weight:700;
+  color:var(--text2);letter-spacing:0.3px;
+}
+.card-action{
+  font-size:11px;color:var(--accent);cursor:pointer;font-family:var(--font-mono);
+  letter-spacing:0.5px;opacity:0.7;transition:opacity 0.15s;
+}
+.card-action:hover{opacity:1;}
+
+/* =========== DONUT =========== */
+.donut-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.donut-right{flex:1;min-width:140px;}
+.legend-list{display:flex;flex-direction:column;gap:8px;}
+.legend-row{
+  display:flex;align-items:center;gap:8px;cursor:pointer;
+  padding:5px 8px;border-radius:8px;transition:background 0.15s;
+}
+.legend-row:hover{background:rgba(255,255,255,0.03);}
+.lg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.lg-name{font-size:12px;color:var(--text2);flex:1;}
+.lg-pct{font-family:var(--font-mono);font-size:12px;color:var(--text);font-weight:500;}
+.lg-amt{font-family:var(--font-mono);font-size:10px;color:var(--text3);min-width:60px;text-align:right;}
+
+/* Donut center */
+.donut-svg-container{position:relative;flex-shrink:0;}
+.donut-center-text{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  text-align:center;pointer-events:none;
+}
+.dc-pct{font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--text);}
+.dc-name{font-size:10px;color:var(--text3);margin-top:2px;font-family:var(--font-mono);}
+
+/* =========== STACKED BAR =========== */
+.stacked-bar{height:16px;border-radius:8px;overflow:hidden;display:flex;margin-bottom:16px;}
+.sb-seg{
+  height:100%;transition:width 0.9s cubic-bezier(.4,0,.2,1);
+  position:relative;cursor:pointer;
+}
+.sb-seg:hover{filter:brightness(1.15);}
+
+.cat-list{display:flex;flex-direction:column;gap:8px;}
+.cat-row{display:flex;align-items:center;gap:10px;}
+.cat-bar-wrap{flex:1;}
+.cat-bar-track{height:4px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;margin-top:4px;}
+.cat-bar-fill{height:100%;border-radius:2px;transition:width 0.8s cubic-bezier(.4,0,.2,1);}
+.cat-name{font-size:12px;color:var(--text2);white-space:nowrap;}
+.cat-pct{font-family:var(--font-mono);font-size:12px;color:var(--text);font-weight:500;min-width:42px;text-align:right;}
+.cat-amt{font-family:var(--font-mono);font-size:10px;color:var(--text3);min-width:72px;text-align:right;}
+
+/* =========== DETAIL BARS =========== */
+.detail-tabs{display:flex;gap:6px;margin-bottom:16px;}
+.dtab{
+  padding:5px 14px;border-radius:8px;font-size:11px;font-weight:700;
+  cursor:pointer;transition:all 0.15s;color:var(--text3);
+  border:1px solid transparent;font-family:var(--font-display);letter-spacing:0.3px;
+  background:none;
+}
+.dtab.active{background:rgba(0,212,255,0.1);border-color:rgba(0,212,255,0.25);color:var(--accent);}
+.dtab:hover:not(.active){color:var(--text2);}
+
+.dbar-list{display:flex;flex-direction:column;gap:12px;}
+.dbar-row{}
+.dbar-header{display:flex;align-items:baseline;gap:8px;margin-bottom:5px;}
+.dbar-name{
+  font-size:12px;color:var(--text2);flex:1;
+  display:flex;align-items:center;gap:6px;
+}
+.dbar-pct{font-family:var(--font-mono);font-size:12px;color:var(--text);font-weight:600;}
+.dbar-amt{font-family:var(--font-mono);font-size:11px;color:var(--text3);}
+.dbar-price{font-family:var(--font-mono);font-size:10px;margin-left:auto;}
+.dbar-price.up{color:var(--green);}
+.dbar-price.dn{color:var(--red);}
+.dbar-track{height:5px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;}
+.dbar-fill{height:100%;border-radius:3px;transition:width 0.8s cubic-bezier(.4,0,.2,1);}
+
+/* =========== TABLE =========== */
+.asset-table{width:100%;border-collapse:collapse;}
+.asset-table th{
+  text-align:left;padding:8px 6px;
+  font-size:10px;color:var(--text3);font-family:var(--font-mono);
+  letter-spacing:1px;text-transform:uppercase;
+  border-bottom:1px solid var(--line);font-weight:400;
+}
+.asset-table th:not(:first-child){text-align:right;}
+.asset-table td{
+  padding:10px 6px;font-size:13px;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+  vertical-align:middle;
+}
+.asset-table td:not(:first-child){text-align:right;font-family:var(--font-mono);}
+.asset-table tr:hover td{background:rgba(255,255,255,0.02);}
+.cat-header td{
+  padding:12px 6px 6px;background:rgba(255,255,255,0.02);
+  border-top:1px solid var(--line);
+}
+.sub-row td:first-child{padding-left:20px;}
+
+/* =========== EDIT PANEL =========== */
+#screen-edit{padding-top:24px;}
+.edit-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px;}
+.edit-title{font-family:var(--font-display);font-size:24px;font-weight:800;letter-spacing:-0.5px;}
+.edit-subtitle{font-size:13px;color:var(--text3);margin-top:4px;}
+.edit-actions{display:flex;gap:10px;}
+
+.btn-sm{
+  padding:8px 18px;border:none;border-radius:9px;cursor:pointer;
+  font-size:12px;font-weight:700;font-family:var(--font-display);
+  letter-spacing:0.3px;transition:all 0.15s;
+}
+.btn-sm.accent{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#080b10;}
+.btn-sm.accent:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.btn-sm.ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--line2);}
+.btn-sm.ghost:hover{color:var(--text);border-color:var(--line2);}
+
+.edit-section{margin-bottom:28px;}
+.edit-sec-label{
+  font-family:var(--font-mono);font-size:10px;color:var(--text3);
+  letter-spacing:2px;text-transform:uppercase;
+  padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+}
+.edit-sec-label .dot{width:6px;height:6px;border-radius:50%;}
+.edit-fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+.field-wrap{}
+.field-label{
+  font-size:11px;color:var(--text3);margin-bottom:6px;
+  display:flex;align-items:center;gap:6px;font-family:var(--font-mono);
+}
+.field-cdot{width:5px;height:5px;border-radius:50%;}
+.field-inp{
+  width:100%;background:var(--bg3);border:1px solid var(--line2);
+  border-radius:9px;padding:10px 14px;color:var(--text);
+  font-size:13px;font-family:var(--font-mono);outline:none;
+  transition:border-color 0.2s;
+  -moz-appearance:textfield;
+}
+.field-inp::-webkit-outer-spin-button,.field-inp::-webkit-inner-spin-button{-webkit-appearance:none;}
+.field-inp:focus{border-color:rgba(0,212,255,0.4);}
+.field-hint{font-size:10px;color:var(--text3);margin-top:4px;text-align:right;}
+
+/* =========== NOTIF =========== */
+.notif{
+  position:fixed;bottom:24px;right:24px;z-index:999;
+  background:var(--bg3);border:1px solid var(--green);
+  border-radius:12px;padding:14px 20px;
+  font-size:13px;color:var(--green);font-family:var(--font-mono);
+  transform:translateY(80px);opacity:0;transition:all 0.35s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 12px 40px rgba(0,0,0,0.5);
+}
+.notif.show{transform:translateY(0);opacity:1;}
+
+/* =========== MISC =========== */
+.chip{
+  display:inline-flex;align-items:center;gap:4px;
+  border-radius:6px;padding:2px 7px;font-size:10px;font-family:var(--font-mono);
+}
+.chip.up{background:rgba(0,229,160,0.1);color:var(--green);border:1px solid rgba(0,229,160,0.2);}
+.chip.dn{background:rgba(255,77,106,0.1);color:var(--red);border:1px solid rgba(255,77,106,0.2);}
+.chip.neu{background:rgba(255,255,255,0.05);color:var(--text3);border:1px solid var(--line);}
+
+.color-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+@media(max-width:600px){
+  .ticker-item{padding:0 12px;}
+  .hero-val{font-size:24px;}
+  .edit-fields{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ========== MYDATA SCREEN ========== -->
+<div id="screen-mydata" class="screen active">
+  <div class="onboard-wrap">
+    <div class="brand">WEALTH<span>.</span></div>
+    <div class="brand-sub">내 자산 포트폴리오</div>
+
+    <div class="mydata-card">
+      <!-- Progress -->
+      <div class="progress-dots">
+        <div class="progress-dot done" id="dot0"></div>
+        <div class="progress-dot" id="dot1"></div>
+        <div class="progress-dot" id="dot2"></div>
+        <div class="progress-dot" id="dot3"></div>
+      </div>
+
+      <!-- Step 0: 기관선택 -->
+      <div class="mydata-step active" id="step0">
+        <div class="step-header">
+          <div class="step-num">STEP 01 / 04</div>
+          <div class="step-title">금융기관을 선택하세요</div>
+          <div class="step-desc">마이데이터 연동할 금융기관을 선택해 주세요.<br>여러 기관을 동시에 연동할 수 있습니다.</div>
+        </div>
+        <div class="bank-list">
+          <div class="bank-item" onclick="toggleBank(this,'kb')">
+            <div class="bank-icon" style="background:#f5c400;color:#000">🏦</div>
+            <div><div class="bank-name">KB국민은행</div><div class="bank-type">예금·적금·대출·투자</div></div>
+            <div class="bank-check">✓</div>
+          </div>
+          <div class="bank-item" onclick="toggleBank(this,'nh')">
+            <div class="bank-icon" style="background:#00a650;color:#fff">🌾</div>
+            <div><div class="bank-name">NH농협은행</div><div class="bank-type">예금·적금·카드</div></div>
+            <div class="bank-check">✓</div>
+          </div>
+          <div class="bank-item" onclick="toggleBank(this,'kakao')">
+            <div class="bank-icon" style="background:#ffe000;color:#000">🐱</div>
+            <div><div class="bank-name">카카오뱅크</div><div class="bank-type">예금·적금·증권연계</div></div>
+            <div class="bank-check">✓</div>
+          </div>
+          <div class="bank-item" onclick="toggleBank(this,'kis')">
+            <div class="bank-icon" style="background:#e8002d;color:#fff">📈</div>
+            <div><div class="bank-name">한국투자증권</div><div class="bank-type">국내·해외주식·채권·ETF</div></div>
+            <div class="bank-check">✓</div>
+          </div>
+          <div class="bank-item" onclick="toggleBank(this,'upbit')">
+            <div class="bank-icon" style="background:#0075ff;color:#fff">₿</div>
+            <div><div class="bank-name">업비트</div><div class="bank-type">코인·디지털자산</div></div>
+            <div class="bank-check">✓</div>
+          </div>
+        </div>
+        <button class="btn-full btn-accent" onclick="nextStep(1)">선택 완료 →</button>
+      </div>
+
+      <!-- Step 1: 본인인증 -->
+      <div class="mydata-step" id="step1">
+        <div class="step-header">
+          <div class="step-num">STEP 02 / 04</div>
+          <div class="step-title">본인인증</div>
+          <div class="step-desc">금융결제원 마이데이터 서비스 연동을 위한 본인인증을 진행합니다.</div>
+        </div>
+        <div class="auth-form">
+          <div class="form-field">
+            <div class="form-label">이름</div>
+            <input class="form-input" type="text" placeholder="홍길동" id="authName">
+          </div>
+          <div class="form-field">
+            <div class="form-label">주민등록번호 앞 6자리</div>
+            <input class="form-input" type="text" placeholder="000000" maxlength="6" id="authSSN">
+          </div>
+          <div class="form-field">
+            <div class="form-label">휴대폰 번호</div>
+            <input class="form-input" type="tel" placeholder="010-0000-0000" id="authPhone">
+          </div>
+        </div>
+        <button class="btn-full btn-accent" onclick="nextStep(2)">인증번호 받기 →</button>
+        <button class="btn-full btn-ghost" onclick="nextStep(0)" style="margin-top:10px">← 이전</button>
+      </div>
+
+      <!-- Step 2: OTP -->
+      <div class="mydata-step" id="step2">
+        <div class="step-header">
+          <div class="step-num">STEP 03 / 04</div>
+          <div class="step-title">인증번호 입력</div>
+          <div class="step-desc">010-****-5678 으로 발송된 6자리 인증번호를 입력하세요.</div>
+        </div>
+        <div style="margin-bottom:24px">
+          <div class="form-label" style="text-align:center;margin-bottom:14px">인증번호 6자리</div>
+          <div class="pin-grid">
+            <input class="pin-box" type="text" maxlength="1" id="p0" oninput="pinNext(0)">
+            <input class="pin-box" type="text" maxlength="1" id="p1" oninput="pinNext(1)">
+            <input class="pin-box" type="text" maxlength="1" id="p2" oninput="pinNext(2)">
+            <input class="pin-box" type="text" maxlength="1" id="p3" oninput="pinNext(3)">
+            <input class="pin-box" type="text" maxlength="1" id="p4" oninput="pinNext(4)">
+            <input class="pin-box" type="text" maxlength="1" id="p5" oninput="pinNext(5)">
+          </div>
+        </div>
+        <button class="btn-full btn-accent" onclick="nextStep(3)">확인 →</button>
+        <button class="btn-full btn-ghost" onclick="nextStep(1)">← 이전</button>
+      </div>
+
+      <!-- Step 3: Syncing -->
+      <div class="mydata-step" id="step3">
+        <div class="step-header">
+          <div class="step-num">STEP 04 / 04</div>
+          <div class="step-title">자산 불러오는 중</div>
+          <div class="step-desc" id="syncMsg">금융결제원에서 자산 정보를 수집하고 있습니다...</div>
+        </div>
+        <div class="loading-bar"><div class="loading-fill" id="loadBar"></div></div>
+        <div class="loading-msg" id="loadMsg">연결 준비 중...</div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:20px;">
+      <span style="font-size:12px;color:var(--text3)">이미 계정이 있으신가요?</span>
+      <span onclick="skipToMain()" style="font-size:12px;color:var(--accent);cursor:pointer;margin-left:6px;font-family:var(--font-mono)">건너뛰고 바로 시작 →</span>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MAIN DASHBOARD ========== -->
+<div id="screen-main" class="screen">
+  <div class="app">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div>
+        <div class="topbar-brand">WEALTH<span>.</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="live-pill"><div class="live-dot"></div>실시간</div>
+        <div class="sync-info" id="syncTime">조회 중...</div>
+        <div class="topbar-nav">
+          <button class="nav-tab active" onclick="showScreen('main')">대시보드</button>
+          <button class="nav-tab" onclick="showScreen('edit')">자산편집</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ticker strip -->
+    <div class="ticker-strip">
+      <div class="ticker-inner" id="tickerInner">
+        <div class="ticker-item"><span class="t-icon">₿</span><span class="t-name">BTC</span><span class="t-price" id="t-btc">—</span><span class="t-chg flat" id="tc-btc">—</span></div>
+        <div class="ticker-item"><span class="t-icon">Ξ</span><span class="t-name">ETH</span><span class="t-price" id="t-eth">—</span><span class="t-chg flat" id="tc-eth">—</span></div>
+        <div class="ticker-item"><span class="t-icon">📈</span><span class="t-name">S&P500</span><span class="t-price" id="t-sp">—</span><span class="t-chg flat" id="tc-sp">—</span></div>
+        <div class="ticker-item"><span class="t-icon">🇰🇷</span><span class="t-name">KOSPI</span><span class="t-price" id="t-kospi">—</span><span class="t-chg flat" id="tc-kospi">—</span></div>
+        <div class="ticker-item"><span class="t-icon">🥇</span><span class="t-name">GOLD/g</span><span class="t-price" id="t-gold">—</span><span class="t-chg flat" id="tc-gold"></span></div>
+        <div class="ticker-item"><span class="t-icon">🌐</span><span class="t-name">USD/KRW</span><span class="t-price" id="t-usd">—</span><span class="t-chg flat" id="tc-usd"></span></div>
+        <div class="t-time" id="tickerTime">—</div>
+      </div>
+    </div>
+
+    <!-- Hero row -->
+    <div class="hero-row">
+      <div class="hero-main">
+        <div class="hero-label">TOTAL ASSETS</div>
+        <div class="hero-val accent" id="heroTotal">₩0</div>
+        <div class="hero-sub" id="heroManwon">0만원</div>
+        <div class="hero-badge" id="heroChange">✓ 마이데이터 연동완료</div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-label">BEST CATEGORY</div>
+        <div class="hero-val" id="heroBest" style="font-size:22px">—</div>
+        <div class="hero-sub" id="heroBestSub">—</div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-label">MOST DIVERSIFIED</div>
+        <div class="hero-val" id="heroDiversify" style="font-size:18px">—</div>
+        <div class="hero-sub" id="heroDivSub">가장 고르게 분산된 카테고리</div>
+      </div>
+    </div>
+
+    <!-- Overview stacked bar -->
+    <div class="card span2 dash-grid" style="display:block;margin-bottom:20px;">
+      <div class="card-h">
+        <div class="card-title">자산 구성 한눈에</div>
+        <div class="card-action" onclick="showScreen('edit')">편집 →</div>
+      </div>
+      <div class="stacked-bar" id="stackedBar"></div>
+      <div class="cat-list" id="catList"></div>
+    </div>
+
+    <!-- Charts grid -->
+    <div class="dash-grid">
+      <!-- Donut -->
+      <div class="card">
+        <div class="card-h">
+          <div class="card-title">카테고리별 비중</div>
+        </div>
+        <div class="donut-wrap">
+          <div class="donut-svg-container">
+            <svg id="donutSvg" width="170" height="170" viewBox="0 0 170 170"></svg>
+            <div class="donut-center-text">
+              <div class="dc-pct" id="dcPct">—</div>
+              <div class="dc-name" id="dcName">전체</div>
+            </div>
+          </div>
+          <div class="donut-right">
+            <div class="legend-list" id="donutLegend"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail bars -->
+      <div class="card">
+        <div class="card-h">
+          <div class="card-title" id="detailBarTitle">세부 비중</div>
+        </div>
+        <div class="detail-tabs" id="detailTabs">
+          <button class="dtab active" data-tab="stock" onclick="switchDetailTab('stock')">주식</button>
+          <button class="dtab" data-tab="raw" onclick="switchDetailTab('raw')">원자재</button>
+          <button class="dtab" data-tab="coin" onclick="switchDetailTab('coin')">코인</button>
+          <button class="dtab" data-tab="bond" onclick="switchDetailTab('bond')">채권</button>
+        </div>
+        <div class="dbar-list" id="detailBars"></div>
+      </div>
+    </div>
+
+    <!-- Full table -->
+    <div class="card">
+      <div class="card-h">
+        <div class="card-title">전체 자산 현황표</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3)">만원 기준</div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="asset-table" id="assetTable"></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== EDIT SCREEN ========== -->
+<div id="screen-edit" class="screen">
+  <div class="app">
+    <div class="edit-header-row">
+      <div>
+        <div class="edit-title">자산 직접 입력</div>
+        <div class="edit-subtitle">각 항목의 금액을 만원 단위로 입력하세요</div>
+      </div>
+      <div class="edit-actions">
+        <button class="btn-sm ghost" onclick="resetDefault()">기본값</button>
+        <button class="btn-sm ghost" onclick="showScreen('main')">← 대시보드</button>
+        <button class="btn-sm accent" onclick="saveAssets()">💾 저장</button>
+      </div>
+    </div>
+    <div id="editSections"></div>
+  </div>
+</div>
+
+<div class="notif" id="notif">✓ 저장되었습니다</div>
+
+<script>
+// ============ DATA ============
+const DEFAULT_ASSETS = {
+  realestate:31307,
+  gold:3500, silver:828, copper:1500,
+  btc:1200, eth:300, altcoin:217,
+  us_stock:22000, kr_stock:12000, jp_stock:3000, eu_stock:2807,
+  kr_bond:10000, us_bond:7000, etf_bond:3942,
+  bank:4000, mmf:2425,
+  car:1500,
+};
+
+const LABELS = {
+  realestate:'부동산',
+  gold:'금(Gold)', silver:'은(Silver)', copper:'구리(Copper)',
+  btc:'비트코인', eth:'이더리움', altcoin:'알트코인',
+  us_stock:'미국주식', kr_stock:'한국주식', jp_stock:'일본주식', eu_stock:'유럽주식',
+  kr_bond:'국내채권', us_bond:'해외채권', etf_bond:'채권ETF',
+  bank:'예금·적금', mmf:'MMF·CMA',
+  car:'자동차·기타',
+};
+
+const CAT_MAP = {
+  realestate:'부동산',
+  gold:'원자재', silver:'원자재', copper:'원자재',
+  btc:'코인', eth:'코인', altcoin:'코인',
+  us_stock:'주식', kr_stock:'주식', jp_stock:'주식', eu_stock:'주식',
+  kr_bond:'채권', us_bond:'채권', etf_bond:'채권',
+  bank:'현금', mmf:'현금',
+  car:'자동차',
+};
+
+const CAT_ORDER = ['부동산','주식','채권','현금','원자재','코인','자동차'];
+
+const CAT_COLORS = {
+  '부동산':'#00d4ff','원자재':'#ffcc44','코인':'#ff7c40',
+  '주식':'#a855f7','채권':'#14b8a6','현금':'#4ade80','자동차':'#a78bfa',
+};
+
+const ITEM_COLORS = {
+  realestate:'#00d4ff',
+  gold:'#ffd54f', silver:'#b0bec5', copper:'#ff8f00',
+  btc:'#f0b429', eth:'#627eea', altcoin:'#ff7c40',
+  us_stock:'#c084fc', kr_stock:'#a855f7', jp_stock:'#7c3aed', eu_stock:'#9333ea',
+  kr_bond:'#2dd4bf', us_bond:'#14b8a6', etf_bond:'#0d9488',
+  bank:'#4ade80', mmf:'#86efac',
+  car:'#a78bfa',
+};
+
+let assets = JSON.parse(localStorage.getItem('wealth_v3') || 'null') || {...DEFAULT_ASSETS};
+let prices = {btcKrw:0,ethKrw:0,btcChg:0,ethChg:0,usdKrw:1350,goldKrwG:0,silverKrwG:0};
+let currentDetailTab = 'stock';
+
+// ============ MYDATA FLOW ============
+let selectedBanks = new Set();
+function toggleBank(el, bank) {
+  el.classList.toggle('selected');
+  if(selectedBanks.has(bank)) selectedBanks.delete(bank);
+  else selectedBanks.add(bank);
+}
+
+let currentStep = 0;
+function nextStep(step) {
+  document.getElementById('step'+currentStep).classList.remove('active');
+  currentStep = step;
+  document.getElementById('step'+currentStep).classList.add('active');
+  // update dots
+  for(let i=0;i<4;i++) {
+    document.getElementById('dot'+i).classList.toggle('done', i<=step);
+  }
+  if(step===3) startSync();
+}
+
+function pinNext(idx) {
+  const el = document.getElementById('p'+idx);
+  if(el.value && idx < 5) document.getElementById('p'+(idx+1)).focus();
+  const all = [0,1,2,3,4,5].map(i=>document.getElementById('p'+i).value).join('');
+  if(all.length===6) setTimeout(()=>nextStep(3),300);
+}
+
+function startSync() {
+  const bar = document.getElementById('loadBar');
+  const msg = document.getElementById('loadMsg');
+  const syncMsg = document.getElementById('syncMsg');
+  const msgs = [
+    '금융결제원 API 연결 중...',
+    'KB국민은행 자산 조회 중...',
+    'NH농협 예금 불러오는 중...',
+    '한국투자증권 포트폴리오 조회 중...',
+    '업비트 코인 자산 확인 중...',
+    '부동산·차량 데이터 매핑 중...',
+    '자산 분류 및 집계 완료!',
+  ];
+  let pct = 0, msgIdx = 0;
+  const iv = setInterval(()=>{
+    pct += 2;
+    bar.style.width = pct+'%';
+    if(pct % 15 === 0 && msgIdx < msgs.length-1) {
+      msgIdx++;
+      msg.textContent = msgs[msgIdx];
+      syncMsg.textContent = msgs[msgIdx];
+    }
+    if(pct >= 100) {
+      clearInterval(iv);
+      setTimeout(()=>{
+        document.getElementById('screen-mydata').classList.remove('active');
+        document.getElementById('screen-main').classList.add('active');
+        render();
+        fetchPrices();
+      }, 600);
+    }
+  }, 60);
+}
+
+function skipToMain() {
+  document.getElementById('screen-mydata').classList.remove('active');
+  document.getElementById('screen-main').classList.add('active');
+  render();
+  fetchPrices();
+}
+
+// ============ SCREEN NAV ============
+function showScreen(name) {
+  ['main','edit'].forEach(s=>{
+    document.getElementById('screen-'+s).classList.toggle('active', s===name);
+  });
+  document.querySelectorAll('.nav-tab').forEach(t=>{
+    t.classList.toggle('active',
+      (name==='main'&&t.textContent==='대시보드') ||
+      (name==='edit'&&t.textContent==='자산편집')
+    );
+  });
+  if(name==='edit') buildEditPanel();
+  if(name==='main') render();
+}
+
+// ============ PRICES ============
+async function fetchPrices() {
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=krw&include_24hr_change=true');
+    const d = await r.json();
+    prices.btcKrw = d.bitcoin?.krw||0;
+    prices.ethKrw = d.ethereum?.krw||0;
+    prices.btcChg = d.bitcoin?.krw_24h_change||0;
+    prices.ethChg = d.ethereum?.krw_24h_change||0;
+  } catch(e){}
+  try {
+    const r = await fetch('https://open.er-api.com/v6/latest/USD');
+    const d = await r.json();
+    prices.usdKrw = d.rates?.KRW||1350;
+  } catch(e){}
+  // Gold approx: ~3100 USD/oz
+  prices.goldKrwG = (3100/31.1035)*prices.usdKrw;
+  prices.silverKrwG = (32/31.1035)*prices.usdKrw;
+
+  updateTicker();
+  render();
+  document.getElementById('syncTime').textContent =
+    new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})+'  갱신';
+}
+
+function updateTicker() {
+  const fmt = (n,d=0)=>n>0?n.toLocaleString('ko-KR',{maximumFractionDigits:d}):'—';
+  const fmtChg = (c)=>{
+    if(!c&&c!==0) return{t:'—',cls:'flat'};
+    return{t:(c>0?'+':'')+c.toFixed(2)+'%', cls:c>0?'up':'dn'};
+  };
+  document.getElementById('t-btc').textContent = prices.btcKrw?'₩'+fmt(prices.btcKrw):'—';
+  document.getElementById('t-eth').textContent = prices.ethKrw?'₩'+fmt(prices.ethKrw):'—';
+  document.getElementById('t-gold').textContent = prices.goldKrwG?'₩'+fmt(prices.goldKrwG,0):'—';
+  document.getElementById('t-usd').textContent = prices.usdKrw?fmt(prices.usdKrw,1)+'원':'—';
+  document.getElementById('t-sp').textContent = '5,638'; // Static fallback
+  document.getElementById('t-kospi').textContent = '2,561'; // Static fallback
+  const bc=fmtChg(prices.btcChg), ec=fmtChg(prices.ethChg);
+  const el_bc=document.getElementById('tc-btc'),el_ec=document.getElementById('tc-eth');
+  el_bc.textContent=bc.t; el_bc.className='t-chg '+bc.cls;
+  el_ec.textContent=ec.t; el_ec.className='t-chg '+ec.cls;
+  document.getElementById('tc-sp').textContent='+0.41%'; document.getElementById('tc-sp').className='t-chg up';
+  document.getElementById('tc-kospi').textContent='-0.15%'; document.getElementById('tc-kospi').className='t-chg dn';
+  document.getElementById('tickerTime').textContent=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ============ RENDER ============
+function getTotal(){ return Object.values(assets).reduce((a,b)=>a+(+b||0),0); }
+
+function getCatTotals() {
+  const r={};
+  for(const[k,v]of Object.entries(assets)){
+    const cat=CAT_MAP[k];
+    r[cat]=(r[cat]||0)+(+v||0);
+  }
+  return r;
+}
+
+function render() {
+  const total = getTotal();
+  const cats = getCatTotals();
+
+  // Hero
+  document.getElementById('heroTotal').textContent = '₩'+(total*10000).toLocaleString('ko-KR')+'원';
+  document.getElementById('heroManwon').textContent = total.toLocaleString('ko-KR')+'만원';
+
+  // Best cat
+  const bestCat = CAT_ORDER.reduce((a,b)=>(cats[a]||0)>(cats[b]||0)?a:b);
+  document.getElementById('heroBest').textContent = bestCat;
+  document.getElementById('heroBestSub').textContent = ((cats[bestCat]||0)/total*100).toFixed(1)+'% · '+(cats[bestCat]||0).toLocaleString()+'만원';
+
+  // Most diversified (most sub-items)
+  const subCounts={'주식':4,'원자재':3,'코인':3,'채권':3,'현금':2,'부동산':1,'자동차':1};
+  document.getElementById('heroDiversify').textContent = '주식 · 원자재 · 코인';
+
+  // Stacked bar
+  renderStackedBar(cats, total);
+  renderDonut(cats, total);
+  renderDetailBars(currentDetailTab);
+  renderTable(cats, total);
+}
+
+function renderStackedBar(cats, total) {
+  const bar = document.getElementById('stackedBar');
+  const list = document.getElementById('catList');
+  bar.innerHTML=''; list.innerHTML='';
+  CAT_ORDER.forEach(cat=>{
+    const v=cats[cat]||0, pct=total?v/total*100:0;
+    if(!v) return;
+    const seg=document.createElement('div');
+    seg.className='sb-seg';
+    seg.style.cssText=`width:0%;background:${CAT_COLORS[cat]};`;
+    seg.title=`${cat} ${pct.toFixed(1)}%`;
+    bar.appendChild(seg);
+    setTimeout(()=>seg.style.width=pct+'%',50);
+
+    const row=document.createElement('div');
+    row.className='cat-row';
+    row.innerHTML=`
+      <div class="color-dot" style="background:${CAT_COLORS[cat]};flex-shrink:0"></div>
+      <div class="cat-name">${cat}</div>
+      <div class="cat-bar-wrap">
+        <div class="cat-bar-track"><div class="cat-bar-fill" style="width:0%;background:${CAT_COLORS[cat]}" data-w="${pct}"></div></div>
+      </div>
+      <div class="cat-pct">${pct.toFixed(1)}%</div>
+      <div class="cat-amt">${v.toLocaleString()}만원</div>
+    `;
+    list.appendChild(row);
+    setTimeout(()=>row.querySelector('.cat-bar-fill').style.width=pct+'%',80);
+  });
+}
+
+function renderDonut(cats, total) {
+  const svg = document.getElementById('donutSvg');
+  const legend = document.getElementById('donutLegend');
+  svg.innerHTML=''; legend.innerHTML='';
+  const cx=85,cy=85,R=74,r=50;
+  let start=-Math.PI/2;
+  CAT_ORDER.forEach(cat=>{
+    const v=cats[cat]||0; if(!v) return;
+    const pct=v/total, ang=pct*2*Math.PI, end=start+ang;
+    const x1=cx+R*Math.cos(start),y1=cy+R*Math.sin(start);
+    const x2=cx+R*Math.cos(end),y2=cy+R*Math.sin(end);
+    const ix1=cx+r*Math.cos(start),iy1=cy+r*Math.sin(start);
+    const ix2=cx+r*Math.cos(end),iy2=cy+r*Math.sin(end);
+    const lg=ang>Math.PI?1:0;
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',`M${x1},${y1}A${R},${R},0,${lg},1,${x2},${y2}L${ix2},${iy2}A${r},${r},0,${lg},0,${ix1},${iy1}Z`);
+    path.setAttribute('fill',CAT_COLORS[cat]);
+    path.setAttribute('stroke','#080b10');
+    path.setAttribute('stroke-width','2.5');
+    path.style.cssText='cursor:pointer;transition:transform 0.15s,opacity 0.15s;transform-origin:85px 85px;';
+    path.addEventListener('mouseenter',()=>{
+      path.style.transform='scale(1.05)';
+      document.getElementById('dcPct').textContent=(pct*100).toFixed(1)+'%';
+      document.getElementById('dcName').textContent=cat;
+    });
+    path.addEventListener('mouseleave',()=>{
+      path.style.transform='scale(1)';
+      document.getElementById('dcPct').textContent='ALL';
+      document.getElementById('dcName').textContent='총자산';
+    });
+    svg.appendChild(path);
+    start=end;
+
+    // Legend
+    const li=document.createElement('div');
+    li.className='legend-row';
+    li.innerHTML=`
+      <div class="lg-dot" style="background:${CAT_COLORS[cat]}"></div>
+      <div class="lg-name">${cat}</div>
+      <div class="lg-pct">${(pct*100).toFixed(1)}%</div>
+      <div class="lg-amt">${v.toLocaleString()}만</div>
+    `;
+    legend.appendChild(li);
+  });
+  document.getElementById('dcPct').textContent='ALL';
+  document.getElementById('dcName').textContent='총자산';
+}
+
+const TAB_ITEMS = {
+  stock:[{key:'us_stock',lbl:'미국주식',flag:'🇺🇸'},{key:'kr_stock',lbl:'한국주식',flag:'🇰🇷'},{key:'jp_stock',lbl:'일본주식',flag:'🇯🇵'},{key:'eu_stock',lbl:'유럽주식',flag:'🇪🇺'}],
+  raw:[{key:'gold',lbl:'금(Gold)',flag:'🥇'},{key:'silver',lbl:'은(Silver)',flag:'🥈'},{key:'copper',lbl:'구리',flag:'🟤'}],
+  coin:[{key:'btc',lbl:'비트코인',flag:'₿'},{key:'eth',lbl:'이더리움',flag:'Ξ'},{key:'altcoin',lbl:'알트코인',flag:'🪙'}],
+  bond:[{key:'kr_bond',lbl:'국내채권',flag:'🇰🇷'},{key:'us_bond',lbl:'해외채권',flag:'🌐'},{key:'etf_bond',lbl:'채권ETF',flag:'📊'}],
+};
+
+function switchDetailTab(tab) {
+  currentDetailTab=tab;
+  document.querySelectorAll('.dtab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  renderDetailBars(tab);
+}
+
+function renderDetailBars(tab) {
+  const list=document.getElementById('detailBars');
+  list.innerHTML='';
+  const items=TAB_ITEMS[tab]||[];
+  const subtotal=items.reduce((a,{key})=>a+(+assets[key]||0),0);
+  const total=getTotal();
+  items.forEach(({key,lbl,flag})=>{
+    const v=+assets[key]||0;
+    const pOfSub=subtotal?v/subtotal*100:0;
+    const pOfTotal=total?v/total*100:0;
+    const color=ITEM_COLORS[key];
+    let priceLabel='';
+    if(key==='btc'&&prices.btcKrw) priceLabel=`<span class="dbar-price ${prices.btcChg>0?'up':'dn'}">₩${prices.btcKrw.toLocaleString()}</span>`;
+    if(key==='eth'&&prices.ethKrw) priceLabel=`<span class="dbar-price ${prices.ethChg>0?'up':'dn'}">₩${prices.ethKrw.toLocaleString()}</span>`;
+    if(key==='gold'&&prices.goldKrwG) priceLabel=`<span class="dbar-price up">₩${Math.round(prices.goldKrwG).toLocaleString()}/g</span>`;
+
+    const row=document.createElement('div');
+    row.className='dbar-row';
+    row.innerHTML=`
+      <div class="dbar-header">
+        <div class="dbar-name">
+          <span style="width:6px;height:6px;border-radius:50%;background:${color};display:inline-block"></span>
+          ${flag} ${lbl}
+        </div>
+        <span class="dbar-pct">${pOfSub.toFixed(1)}%</span>
+        <span class="dbar-amt">${v.toLocaleString()}만</span>
+        ${priceLabel}
+        <span class="chip neu" style="font-size:9px;margin-left:4px">총 ${pOfTotal.toFixed(1)}%</span>
+      </div>
+      <div class="dbar-track">
+        <div class="dbar-fill" style="width:0%;background:${color}" data-w="${pOfSub}"></div>
+      </div>
+    `;
+    list.appendChild(row);
+    setTimeout(()=>row.querySelector('.dbar-fill').style.width=pOfSub+'%',50);
+  });
+}
+
+function renderTable(cats, total) {
+  const tbl=document.getElementById('assetTable');
+  let html=`<thead><tr>
+    <th>자산 항목</th>
+    <th>금액(만원)</th>
+    <th>전체 비율</th>
+    <th>카테고리內</th>
+  </tr></thead><tbody>`;
+
+  CAT_ORDER.forEach(cat=>{
+    const cv=cats[cat]||0; if(!cv) return;
+    const cpct=total?cv/total*100:0;
+    html+=`<tr class="cat-header">
+      <td colspan="4">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:${CAT_COLORS[cat]};display:inline-block"></span>
+          <span style="font-weight:700;font-family:var(--font-display);font-size:13px">${cat}</span>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--text3)">${cv.toLocaleString()}만원</span>
+          <span style="font-family:var(--font-mono);font-size:11px;color:${CAT_COLORS[cat]};margin-left:4px">${cpct.toFixed(1)}%</span>
+        </div>
+      </td>
+    </tr>`;
+    for(const[k,v]of Object.entries(assets)){
+      if(CAT_MAP[k]!==cat||!v) continue;
+      const pT=total?v/total*100:0, pC=cv?v/cv*100:0;
+      html+=`<tr class="sub-row">
+        <td style="display:flex;align-items:center;gap:6px;color:var(--text2)">
+          <span style="width:4px;height:4px;border-radius:50%;background:${ITEM_COLORS[k]};display:inline-block"></span>
+          ${LABELS[k]}
+        </td>
+        <td style="color:var(--text)">${(+v||0).toLocaleString()}</td>
+        <td>${pT.toFixed(2)}%</td>
+        <td style="color:var(--text3)">${pC.toFixed(1)}%</td>
+      </tr>`;
+    }
+  });
+
+  html+=`</tbody><tfoot><tr style="border-top:2px solid var(--line2)">
+    <td style="font-weight:700;font-family:var(--font-display);color:var(--text)">총 합계</td>
+    <td style="color:var(--accent);font-weight:600">${total.toLocaleString()}</td>
+    <td style="color:var(--accent)">100.0%</td>
+    <td></td>
+  </tr></tfoot>`;
+  tbl.innerHTML=html;
+}
+
+// ============ EDIT PANEL ============
+const EDIT_SECTIONS = [
+  {label:'부동산', color:'#00d4ff', items:['realestate']},
+  {label:'원자재', color:'#ffcc44', items:['gold','silver','copper']},
+  {label:'코인', color:'#ff7c40', items:['btc','eth','altcoin']},
+  {label:'주식', color:'#a855f7', items:['us_stock','kr_stock','jp_stock','eu_stock']},
+  {label:'채권', color:'#14b8a6', items:['kr_bond','us_bond','etf_bond']},
+  {label:'현금·유동성', color:'#4ade80', items:['bank','mmf']},
+  {label:'자동차·기타', color:'#a78bfa', items:['car']},
+];
+
+function buildEditPanel() {
+  const el=document.getElementById('editSections');
+  el.innerHTML='';
+  EDIT_SECTIONS.forEach(sec=>{
+    const div=document.createElement('div');
+    div.className='edit-section';
+    let fields='';
+    sec.items.forEach(key=>{
+      fields+=`<div class="field-wrap">
+        <div class="field-label"><span class="field-cdot" style="background:${ITEM_COLORS[key]}"></span>${LABELS[key]}</div>
+        <input class="field-inp" type="number" id="inp-${key}" value="${assets[key]||0}" min="0" step="100" oninput="liveInp('${key}',this.value)">
+        <div class="field-hint">만원 단위</div>
+      </div>`;
+    });
+    div.innerHTML=`
+      <div class="edit-sec-label">
+        <span class="dot" style="background:${sec.color}"></span>
+        ${sec.label}
+      </div>
+      <div class="edit-fields">${fields}</div>
+    `;
+    el.appendChild(div);
+  });
+}
+
+function liveInp(key,val){ assets[key]=+val||0; }
+
+function saveAssets() {
+  localStorage.setItem('wealth_v3', JSON.stringify(assets));
+  showNotif('✓  저장되었습니다');
+  setTimeout(()=>{ showScreen('main'); },600);
+}
+
+function resetDefault() {
+  if(confirm('기본값으로 초기화하시겠습니까?')) {
+    assets={...DEFAULT_ASSETS};
+    buildEditPanel();
+    showNotif('↺  초기화되었습니다');
+  }
+}
+
+function showNotif(msg) {
+  const n=document.getElementById('notif');
+  n.textContent=msg; n.classList.add('show');
+  setTimeout(()=>n.classList.remove('show'),2500);
+}
+
+// Auto-refresh prices every 60s
+setInterval(fetchPrices, 60000);
+
+// PWA Service Worker 등록
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
+
+</script>
+</body>
+</html>
